@@ -27,7 +27,14 @@ public class MissionDemolition : MonoBehaviour {
 	public GameMode mode = GameMode.idle;
 	public string showing = "Show Slingshot"; // режим FollowCam
 
+	// Countdown timer
+	public float timeLimitInSeconds = 60f;
+	private float remainingTimeInSeconds;
+	public Text countdownTextSeconds;
+
 	void Start () {
+		// countdownTextSeconds.text = CurrentTimeInSeconds.ToString("0");
+
 		S = this; // определить объект-одиночку
 
 		level = 0;
@@ -36,6 +43,8 @@ public class MissionDemolition : MonoBehaviour {
 	}
 
 	void StartLevel() {
+		remainingTimeInSeconds = timeLimitInSeconds; // initialize the remaining time
+
 		// уничтожить прежний замок, если он существует
 		if (castle != null) {
 			Destroy (castle);
@@ -71,11 +80,26 @@ public class MissionDemolition : MonoBehaviour {
 	}
 
 	void Update () {
-		UpdateGUI ();
+		// decrement the remaining time
+		if (mode == GameMode.playing && remainingTimeInSeconds > 0f)
+		{
+			remainingTimeInSeconds -= Time.deltaTime;
+			countdownTextSeconds.text = Mathf.CeilToInt(remainingTimeInSeconds).ToString();
+		}
 
-		// проверить завершение уровня
+		// check if the time limit has been exceeded
+		if (mode == GameMode.playing && remainingTimeInSeconds <= 0f)
+		{
+			// restart the level
+			StartLevel();
+		}
+
+		UpdateGUI();
+
+		// check level completion
 		if ( (mode == GameMode.playing) && Goal.goalMet) {
-			// изменить режим, чтобы пркратить проверку завершения уровня
+			Debug.Log("level" + level);
+			// change mode to stop level completion check
 			mode = GameMode.levelEnd;
 			// уменьшить масштаб
 			SwitchView("Show Both");
@@ -91,6 +115,21 @@ public class MissionDemolition : MonoBehaviour {
 		}
 		StartLevel ();
 	}
+
+	void OnTriggerEnter(Collider other)
+	{
+		if (other.gameObject.tag == "Projectile")
+		{
+			// ...
+			if (remainingTimeInSeconds > 0f)
+			{ // check if the time limit has not been exceeded
+				Goal.goalMet = true;
+				mode = GameMode.levelEnd;
+				// ...
+			}
+		}
+	}
+
 
 	public void SwitchView( string eView = "" ) {
 		if (eView == "") {
