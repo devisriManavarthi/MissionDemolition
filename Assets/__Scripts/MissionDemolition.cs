@@ -32,6 +32,12 @@ public class MissionDemolition : MonoBehaviour {
 	private float remainingTimeInSeconds;
 	public Text countdownTextSeconds;
 
+	// create a score variable and update it for each second
+	[Header("Score")]
+	private float score = 0f;
+	private bool isLevelsCompleted = false;
+	public Text scoreboard;
+
 	void Start () {
 		// countdownTextSeconds.text = CurrentTimeInSeconds.ToString("0");
 
@@ -106,14 +112,25 @@ public class MissionDemolition : MonoBehaviour {
 			// начать новый уровень через 2 секунды
 			Invoke("NextLevel", 2f);
 		}
+
+		// Update score once per second
+        if (!isLevelsCompleted) {
+            score += Time.deltaTime;
+        }
+
 	}
 
 	void NextLevel() {
 		level++;
 		if (level == levelMax) {
 			level = 0;
+			isLevelsCompleted = true;
+			Debug.Log("Game finished! Your score is " + score.ToString("0") + " seconds.");
+			scoreboard.text = "Total Score: " + score.ToString("0") + " sec";
 		}
-		StartLevel ();
+		else{
+			StartLevel ();
+		}
 	}
 
 	void OnTriggerEnter(Collider other)
