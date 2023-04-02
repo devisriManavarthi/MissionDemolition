@@ -2,11 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public enum GameMode {
 	idle,
 	playing,
 	levelEnd
+}
+
+public class Player
+{
+    //public string Name { get; set; }
+    public int Level { get; set; }
+    public int Score { get; set; }
+
+    public Player(int level, int score)
+    {
+        this.Level = level;
+        this.Score = score;
+    }
 }
 
 public class MissionDemolition : MonoBehaviour {
@@ -38,8 +52,16 @@ public class MissionDemolition : MonoBehaviour {
 	private bool isLevelsCompleted = false;
 	public Text scoreboard;
 
+	private int totalScore = 0;
+	private string input;
+	public Canvas LeaderboardCanvas;
+
+	// top 5 best scores
+	List<Player> playerLeaderboard = new List<Player>();
+
 	void Start () {
 		// countdownTextSeconds.text = CurrentTimeInSeconds.ToString("0");
+		LeaderboardCanvas.gameObject.SetActive(false);
 
 		S = this; // определить объект-одиночку
 
@@ -73,6 +95,7 @@ public class MissionDemolition : MonoBehaviour {
 
 		// сбросить цель
 		Goal.goalMet = false;
+		score = 0;
 
 		UpdateGUI();
 
@@ -109,6 +132,17 @@ public class MissionDemolition : MonoBehaviour {
 			mode = GameMode.levelEnd;
 			// уменьшить масштаб
 			SwitchView("Show Both");
+			
+			// add the player score 
+			int scoreInt = (int)score;
+			var playerScore = new Player(
+				level: level + 1,
+				score: scoreInt
+			);
+			Debug.Log("level:" + level + ",  " + "score: " + scoreInt + "\n");
+			playerLeaderboard.Add(playerScore);
+			totalScore = totalScore + scoreInt;
+
 			// начать новый уровень через 2 секунды
 			Invoke("NextLevel", 2f);
 		}
@@ -121,28 +155,45 @@ public class MissionDemolition : MonoBehaviour {
 	}
 
 	void NextLevel() {
+		// add score to list
 		level++;
+
 		if (level == levelMax) {
 			level = 0;
 			isLevelsCompleted = true;
-			Debug.Log("Game finished! Your score is " + score.ToString("0") + " seconds.");
-			scoreboard.text = "Total Score: " + score.ToString("0") + " sec";
+			LeaderboardCanvas.gameObject.SetActive(true);
 		}
 		else{
 			StartLevel ();
 		}
 	}
 
+	public void displayLeaderboard()
+    {
+		Debug.Log("Game finished! Your score is " + score.ToString("0") + " seconds.");
+
+		var topBestScoresByLevel = playerLeaderboard
+			.OrderByDescending(x => x.Score)
+			.Take(5);
+
+		string lvl_strings = "\n\n" + input + " Leaderboard \n\n";
+		foreach (var player in topBestScoresByLevel)
+		{
+			Debug.Log("level:" + player.Level + ",  " + "score: " + player.Score + "\n");
+			lvl_strings = lvl_strings + "Level" + player.Level + "  >  " + player.Score + "\n";
+		}
+
+		scoreboard.text = "Total Score: " + totalScore.ToString("0") + " sec" + lvl_strings;
+	}
+
 	void OnTriggerEnter(Collider other)
 	{
 		if (other.gameObject.tag == "Projectile")
 		{
-			// ...
 			if (remainingTimeInSeconds > 0f)
 			{ // check if the time limit has not been exceeded
 				Goal.goalMet = true;
 				mode = GameMode.levelEnd;
-				// ...
 			}
 		}
 	}
@@ -174,5 +225,14 @@ public class MissionDemolition : MonoBehaviour {
 	// статистический метод, позволяющий из любого кода увеличить shotsTaken
 	public static void ShotFired() {
 		S.shotsTaken++;
+	}
+
+
+	public void ReadStringInput(string s)
+	{
+		// get the player name from the input field
+		input = s;
+		Debug.Log(input);
+
 	}
 }
