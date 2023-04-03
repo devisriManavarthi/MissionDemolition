@@ -26,6 +26,8 @@ public class Player
 public class MissionDemolition : MonoBehaviour {
 	static private MissionDemolition S; // скрытый объект-одиночка
 
+	static public Slingshot slingshot;
+
 	[Header ("Set in Inspector")]
 	public Text uitLevel; //  ссылка на объект UIText_Level
 	public Text uitShots; // ссылка на объект UIText_Shots
@@ -59,6 +61,9 @@ public class MissionDemolition : MonoBehaviour {
 	// top 5 best scores
 	List<Player> playerLeaderboard = new List<Player>();
 
+	public GameObject[] projectiles; // array of projectiles
+	public int currentProjectileIndex; // current index of the projectile array
+
 	void Start () {
 		// countdownTextSeconds.text = CurrentTimeInSeconds.ToString("0");
 		LeaderboardCanvas.gameObject.SetActive(false);
@@ -72,7 +77,6 @@ public class MissionDemolition : MonoBehaviour {
 
 	void StartLevel() {
 		remainingTimeInSeconds = timeLimitInSeconds; // initialize the remaining time
-
 		// уничтожить прежний замок, если он существует
 		if (castle != null) {
 			Destroy (castle);
@@ -100,7 +104,13 @@ public class MissionDemolition : MonoBehaviour {
 		UpdateGUI();
 
 		mode = GameMode.playing;
-	}
+
+        // instantiate the current projectile
+        //GameObject currentProjectile = Instantiate<GameObject>(projectiles[currentProjectileIndex]);
+        //currentProjectile.transform.position = Vector3.zero;
+        //currentProjectile.GetComponent<Rigidbody>().isKinematic = true;
+
+    }
 
 	void UpdateGUI() {
 		// показать данные в элементах пользовательского интерфейса
@@ -173,10 +183,10 @@ public class MissionDemolition : MonoBehaviour {
 		Debug.Log("Game finished! Your score is " + score.ToString("0") + " seconds.");
 
 		var topBestScoresByLevel = playerLeaderboard
-			.OrderByDescending(x => x.Score)
+			.OrderBy(x => x.Score)
 			.Take(5);
 
-		string lvl_strings = "\n\n" + input + " Leaderboard \n\n";
+		string lvl_strings = "\n" + input + " Leaderboard \n\n";
 		foreach (var player in topBestScoresByLevel)
 		{
 			Debug.Log("level:" + player.Level + ",  " + "score: " + player.Score + "\n");
@@ -235,4 +245,32 @@ public class MissionDemolition : MonoBehaviour {
 		Debug.Log(input);
 
 	}
+
+	public void SwitchPrefabProjectile()
+	{
+		//// increment the current projectile index
+		//currentProjectileIndex++;
+		//if (currentProjectileIndex >= projectiles.Length)
+		//{
+		//    currentProjectileIndex = 0;
+		//}
+
+		// destroy the current projectile and instantiate the new projectile
+		Destroy(GameObject.FindGameObjectWithTag("Projectile"));
+		if (gameObject.tag != "Spear") {
+			slingshot.projectile = Instantiate(slingshot.spearPrefab) as GameObject;
+			slingshot.projectile.transform.position = slingshot.launchPos;
+			slingshot.projectile.GetComponent<Rigidbody>().isKinematic = true;
+		}
+        else
+        {
+			slingshot.projectile = Instantiate(slingshot.prefabProjectile) as GameObject;
+			slingshot.projectile.transform.position = slingshot.launchPos;
+			slingshot.projectile.GetComponent<Rigidbody>().isKinematic = true;
+		}
+			
+
+    }
+
+
 }

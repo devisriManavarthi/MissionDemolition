@@ -7,6 +7,7 @@ public class Slingshot : MonoBehaviour {
 	// поля, устанавливаемые в инспекторе Unity
 	[Header("Set in Inspector")]
 	public GameObject prefabProjectile;
+	public GameObject spearPrefab;
 	public float velocityMult = 8f;
 
 	//поля, устанавливаемые динамически
@@ -53,6 +54,27 @@ public class Slingshot : MonoBehaviour {
 		// сделать его кинематическим
 		projectileRigidbody = projectile.GetComponent<Rigidbody>();
 		projectileRigidbody.isKinematic = true;
+	}
+	public void SwitchProjectile()
+	{
+		if (gameObject.tag != "Spear")
+		{
+			Destroy(gameObject);
+			Debug.Log("Destroyed");
+
+		}
+		Debug.Log("ball >> " + projectile);
+		// destroy the current projectile and instantiate the new projectile
+		Destroy(GameObject.FindGameObjectWithTag("Projectile"));
+		projectile = Instantiate(spearPrefab) as GameObject;
+		projectile.transform.position = launchPos;
+		projectileRigidbody = projectile.GetComponent<Rigidbody>();
+		projectileRigidbody.isKinematic = true;
+
+		Debug.Log("ball Destroyed"+ projectile);
+
+
+
 	}
 
 	void Update() {

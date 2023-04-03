@@ -86,7 +86,7 @@ public class ProjectileLine : MonoBehaviour {
 		if (poi == null) {
 			// если свойство poi содержит пустое значение, найти интересующий объект
 			if (FollowCam.POI != null) {
-				if (FollowCam.POI.tag == "Projectile") {
+				if (FollowCam.POI.tag == "Projectile" || FollowCam.POI.tag == "Spear") {
 					poi = FollowCam.POI;
 				} else {
 					return; // выйти, если интересующий объект не найден
